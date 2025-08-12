@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - MONGODB_URI=mongodb://mongo:27017/currency_conversion
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - RABBITMQ_QUEUE=conversion_logs
+      - COINGECKO_API_URL=https://api.coingecko.com/api/v3
+      - OPENEXCHANGERATES_API_URL=https://openexchangerates.org/api
+      - OPENEXCHANGERATES_APP_ID=${OPENEXCHANGERATES_APP_ID}
+    depends_on:
+      - mongo
+      - rabbitmq
+    restart: unless-stopped
+    networks:
+      - currency-network
+
+  mongo:
+    image: mongo:6
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=currency_conversion
+    volumes:
+      - mongo_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    restart: unless-stopped
+    networks:
+      - currency-network
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=admin
+      - RABBITMQ_DEFAULT_PASS=admin123
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    restart: unless-stopped
+    networks:
+      - currency-network
+
+  # Optional: Redis for caching (uncomment if needed)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   networks:
+  #     - currency-network
+
+volumes:
+  mongo_data:
+    driver: local
+  rabbitmq_data:
+    driver: local
+  # redis_data:
+  #   driver: local
+
+networks:
+  currency-network:
+    driver: bridge 

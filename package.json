@@ -1,0 +1,54 @@
+{
+  "name": "currency-conversion-api",
+  "version": "1.0.0",
+  "description": "Currency Conversion API with Express.js, MongoDB, and RabbitMQ",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:api": "node test-api.js",
+    "test:coverage": "jest --coverage",
+    "lint": "echo 'Linting not configured yet'",
+    "docker:build": "docker build -t currency-api .",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up -d",
+    "docker:dev-down": "docker-compose -f docker-compose.dev.yml down"
+  },
+  "keywords": [
+    "currency",
+    "conversion",
+    "api",
+    "expressjs",
+    "mongodb",
+    "rabbitmq",
+    "websocket",
+    "socketio"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "amqplib": "^0.10.8",
+    "axios": "^1.11.0",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.0",
+    "dotenv": "^17.2.1",
+    "express": "^4.21.2",
+    "helmet": "^8.1.0",
+    "joi": "^18.0.0",
+    "mongoose": "^8.17.0",
+    "multer": "^2.0.2",
+    "node-cron": "^4.2.1",
+    "pdfmake": "^0.2.20",
+    "puppeteer": "^24.16.0",
+    "roboto-font": "^0.1.0",
+    "socket.io": "^4.8.1"
+  },
+  "devDependencies": {
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0",
+    "supertest": "^6.0.0"
+  }
+}

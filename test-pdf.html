@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de PDF - API de Conversión de Monedas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .button {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .button:hover {
+            background: #2980b9;
+        }
+        .info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #3498db;
+        }
+        .pdf-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Prueba de Generación de PDF</h1>
+        
+        <div class="info">
+            <strong>📋 Instrucciones:</strong>
+            <ul>
+                <li>Haz clic en "Generar PDF" para crear un reporte de conversiones</li>
+                <li>El PDF se descargará automáticamente</li>
+                <li>También puedes ver el PDF directamente en el navegador</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="button" onclick="generatePDF()">📄 Generar PDF</button>
+            <button class="button" onclick="viewPDF()">👁️ Ver PDF en Navegador</button>
+            <button class="button" onclick="getReportData()">📊 Ver Datos del Reporte</button>
+        </div>
+
+        <div id="result" style="margin-top: 20px;"></div>
+        
+        <div id="pdfViewer" class="pdf-container" style="display: none;">
+            <iframe id="pdfFrame" src=""></iframe>
+        </div>
+    </div>
+
+    <script>
+        async function generatePDF() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>⏳ Generando PDF...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3007/report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: new Date().toISOString().split('T')[0]
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    // Crear enlace de descarga
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'conversion_report.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    
+                    resultDiv.innerHTML = '<p style="color: green;">✅ PDF generado y descargado correctamente!</p>';
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Error de conexión: ${error.message}</p>`;
+            }
+        }
+
+        async function viewPDF() {
+            const resultDiv = document.getElementById('result');
+            const pdfViewer = document.getElementById('pdfViewer');
+            const pdfFrame = document.getElementById('pdfFrame');
+            
+            resultDiv.innerHTML = '<p>⏳ Cargando PDF...</p>';
+            
+            try {
+                const response = await fetch('http://localhost:3007/report', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        date: new Date().toISOString().split('T')[0]
+                    })
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    
+                    pdfFrame.src = url;
+                    pdfViewer.style.display = 'block';
+                    resultDiv.innerHTML = '<p style="color: green;">✅ PDF cargado en el navegador!</p>';
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Error de conexión: ${error.message}</p>`;
+            }
+        }
+
+        async function getReportData() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>⏳ Obteniendo datos...</p>';
+            
+            try {
+                const response = await fetch(`http://localhost:3007/report?date=${new Date().toISOString().split('T')[0]}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    resultDiv.innerHTML = `
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                            <h3>📊 Datos del Reporte</h3>
+                            <p><strong>Fecha:</strong> ${data.date}</p>
+                            <p><strong>Conversiones:</strong> ${data.conversions}</p>
+                            <p><strong>Total Original:</strong> $${data.statistics.totalOriginalAmount.toFixed(2)}</p>
+                            <p><strong>Total Convertido:</strong> $${data.statistics.totalConvertedAmount.toFixed(2)}</p>
+                            <p><strong>Tasa Promedio:</strong> ${data.statistics.averageRate.toFixed(4)}</p>
+                            <p><strong>Pares Únicos:</strong> ${data.statistics.uniqueCurrencyPairs.length}</p>
+                        </div>
+                    `;
+                } else {
+                    const error = await response.json();
+                    resultDiv.innerHTML = `<p style="color: red;">❌ Error: ${error.error}</p>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">❌ Error de conexión: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html> 

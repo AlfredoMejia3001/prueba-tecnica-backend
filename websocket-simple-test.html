@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Simple Test</title>
+    <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .status { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+        .message { background: #f8f9fa; padding: 10px; margin: 5px 0; border-radius: 5px; }
+        button { padding: 10px 20px; margin: 10px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Prueba Simple de WebSocket</h1>
+    
+    <div id="status" class="status disconnected">🔌 Desconectado</div>
+    
+    <button onclick="testConversion()">🔄 Probar Conversión</button>
+    <button onclick="clearMessages()">🗑️ Limpiar Mensajes</button>
+    
+    <h3>📡 Mensajes WebSocket:</h3>
+    <div id="messages"></div>
+
+    <script>
+        const socket = io('http://localhost:3007');
+        
+        socket.on('connect', () => {
+            document.getElementById('status').className = 'status connected';
+            document.getElementById('status').textContent = '✅ Conectado al WebSocket';
+            socket.emit('join-conversions');
+        });
+        
+        socket.on('disconnect', () => {
+            document.getElementById('status').className = 'status disconnected';
+            document.getElementById('status').textContent = '🔌 Desconectado del WebSocket';
+        });
+        
+        socket.on('conversion', (data) => {
+            addMessage('🔄 Nueva conversión recibida:', data);
+        });
+        
+        socket.on('rate-update', (data) => {
+            addMessage('📊 Actualización de tasa:', data);
+        });
+        
+        function addMessage(title, data) {
+            const messagesDiv = document.getElementById('messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message';
+            messageDiv.innerHTML = `
+                <strong>${title}</strong><br>
+                <pre>${JSON.stringify(data, null, 2)}</pre>
+            `;
+            messagesDiv.appendChild(messageDiv);
+        }
+        
+        async function testConversion() {
+            try {
+                const response = await fetch('http://localhost:3007/convert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: 'USD',
+                        to: 'EUR',
+                        amount: 100
+                    })
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    addMessage('✅ Conversión exitosa:', result);
+                } else {
+                    addMessage('❌ Error en conversión:', { status: response.status });
+                }
+            } catch (error) {
+                addMessage('❌ Error de conexión:', { error: error.message });
+            }
+        }
+        
+        function clearMessages() {
+            document.getElementById('messages').innerHTML = '';
+        }
+    </script>
+</body>
+</html> 

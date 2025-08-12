@@ -1,0 +1,8 @@
+fromCurrency,toCurrency,rate,source
+USD,EUR,0.85,manual
+EUR,USD,1.18,manual
+USD,MXN,18.50,manual
+BTC,USD,45000,coingecko
+ETH,USD,3000,coingecko
+EUR,JPY,160.50,openexchangerates
+USD,JPY,150.25,openexchangerates
